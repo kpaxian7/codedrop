@@ -26,12 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # ONE-TIME SETUP: enable Pages first, or this step fails with
+      # "Resource not accessible by integration" — the Actions token can deploy
+      # to an existing Pages site but cannot create one.
+      # Repo → Settings → Pages → Build and deployment → Source → "GitHub Actions".
       - uses: actions/configure-pages@v5
-        with:
-          # Auto-enable Pages on first run so no manual Settings toggle is needed.
-          # (If your org restricts token-based enablement, set Settings → Pages →
-          #  Source → "GitHub Actions" once instead.)
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           # The site is static and lives at the repo root (index.html).
