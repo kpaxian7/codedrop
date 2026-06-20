@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Local env / secrets (never commit SMTP credentials)
+.env
+*.local
+
+# OS / editor / tooling cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+.claude/
+
+# Logs
+*.log
+npm-debug.log*

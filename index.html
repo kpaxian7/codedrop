@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-accent="emerald">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeDrop — send redemption codes from your own SMTP</title>
+  <meta name="description" content="CodeDrop is a tiny, self-hosted tool for mapping recipients to one-time codes and sending the whole batch from your own SMTP in one click.">
+  <meta name="color-scheme" content="light">
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+  <!-- Fonts: IBM Plex Sans (body), JetBrains Mono (UI), Noto Sans SC (中文). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <!-- The app renders into #app. It is a plain function of state (see app.js). -->
+  <div id="app" class="app">
+    <div class="boot">Loading CodeDrop…</div>
+  </div>
+
+  <!-- Toasts live outside #app so re-renders don't clear them. -->
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+  <noscript>
+    <div class="boot">CodeDrop needs JavaScript enabled to run.</div>
+  </noscript>
+
+  <!-- Load order matters: config + strings first, then sender, then the app. -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/send.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

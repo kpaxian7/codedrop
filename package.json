@@ -1,0 +1,30 @@
+{
+  "name": "codedrop",
+  "version": "0.1.0",
+  "description": "Send redemption codes from your own SMTP — a tiny, self-hosted, build-step-free static app.",
+  "license": "MIT",
+  "homepage": "https://github.com/kpaxian7/codedrop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kpaxian7/codedrop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kpaxian7/codedrop/issues"
+  },
+  "keywords": [
+    "smtp",
+    "email",
+    "redemption-codes",
+    "bulk-email",
+    "self-hosted",
+    "static-site",
+    "vanilla-js",
+    "no-build"
+  ],
+  "scripts": {
+    "dev": "python3 -m http.server 5173",
+    "serve": "npx --yes serve .",
+    "check": "node --check assets/js/config.js && node --check assets/js/i18n.js && node --check assets/js/send.js && node --check assets/js/app.js && node --check examples/server/server.js"
+  },
+  "private": false
+}
