@@ -15,6 +15,8 @@ no vendor lock-in — it's a static page plus an optional 100-line backend.
 
 [Quick start](#quick-start) · [Configuration](#configuration) · [Deploy](#deploy) · [Real sending](#turning-on-real-sending) · [Security](#security-notes)
 
+**English** · [中文](README.zh-CN.md)
+
 </div>
 
 ---
@@ -78,9 +80,8 @@ codedrop/
 │       ├── i18n.js         # ← edit me: all UI copy + default email template
 │       ├── send.js         # demo/real send abstraction (backend contract)
 │       └── app.js          # state + render + behaviour (no dependencies)
-├── examples/
-│   └── server/             # optional reference backend (Node + nodemailer)
-└── design/                 # the original Claude design export (reference)
+└── examples/
+    └── server/             # optional reference backend (Node + nodemailer)
 ```
 
 ## Configuration
@@ -182,4 +183,4 @@ Run `npm run check` before opening a PR (it verifies every script parses).
 
 [MIT](LICENSE) — do what you like, just keep the notice.
 
-<sub>UI originally designed with Claude; see <code>design/</code> for the original export.</sub>
+<sub>UI originally designed with Claude.</sub>
