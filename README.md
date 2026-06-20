@@ -8,10 +8,13 @@ Map each recipient to a one-time code, write one template with a `{{code}}`
 token, and send the whole batch from your own mailbox. No build step, no SaaS,
 no vendor lock-in — it's a static page plus an optional 100-line backend.
 
+[![Live demo](https://img.shields.io/badge/demo-live-1c7a4d.svg)](https://kpaxian7.github.io/codedrop/)
 [![CI](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml/badge.svg)](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 ![No build step](https://img.shields.io/badge/build-none-brightgreen.svg)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-1c7a4d.svg)](CONTRIBUTING.md)
+
+**🔗 [Live demo](https://kpaxian7.github.io/codedrop/)** — runs in demo mode (nothing is actually emailed).
 
 [Quick start](#quick-start) · [Configuration](#configuration) · [Deploy](#deploy) · [Real sending](#turning-on-real-sending) · [Security](#security-notes)
 

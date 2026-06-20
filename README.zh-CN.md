@@ -8,10 +8,13 @@
 自己的邮箱把整批发出去。无需构建步骤、无需 SaaS、无厂商绑定 —— 一个静态页面，
 外加一个可选的百来行后端。
 
+[![Live demo](https://img.shields.io/badge/demo-live-1c7a4d.svg)](https://kpaxian7.github.io/codedrop/)
 [![CI](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml/badge.svg)](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 ![No build step](https://img.shields.io/badge/build-none-brightgreen.svg)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-1c7a4d.svg)](CONTRIBUTING.md)
+
+**🔗 [在线 Demo](https://kpaxian7.github.io/codedrop/)** —— 运行在演示模式（不会真正发信）。
 
 [快速开始](#快速开始) · [配置](#配置) · [部署](#部署) · [开启真实发送](#开启真实发送) · [安全](#安全须知)
 
