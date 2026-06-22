@@ -84,7 +84,11 @@ function buildTransport(clientSmtp) {
     requireTLS: s.security === "STARTTLS",
     auth: { user: s.user, pass: s.pass },
   });
-  const from = s.fromName ? `${s.fromName} <${s.fromEmail || s.user}>` : (s.fromEmail || s.user);
+  // The From address is the authenticated account. From the UI that's the login
+  // (s.user — labelled "from email"); s.fromEmail there is the test recipient, not
+  // a sender. The .env path keeps its explicit SMTP_FROM_EMAIL.
+  const fromAddr = FROM_ENV ? (s.fromEmail || s.user) : s.user;
+  const from = s.fromName ? `${s.fromName} <${fromAddr}>` : fromAddr;
   return { transport, from };
 }
 

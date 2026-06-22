@@ -217,7 +217,7 @@
     var subject = state.subject == null ? T.tplSubject : state.subject;
     var body = state.body == null ? T.tplBody : state.body;
     var fill = function (s) { return String(s || "").split("{{code}}").join(previewCode); };
-    var previewFrom = (sm.fromName ? sm.fromName + " <" + sm.fromEmail + ">" : sm.fromEmail) || "you@domain.com";
+    var previewFrom = (sm.fromName ? sm.fromName + " <" + sm.user + ">" : sm.user) || "you@domain.com";
 
     var configured = !!(sm.host && sm.port && sm.user && sm.pass);
     var smtpStyle = configured
@@ -245,7 +245,7 @@
       previewTo: previewTo, previewFrom: previewFrom,
       previewSubject: fill(subject), previewBody: fill(body),
       // action bar
-      smtpInlineLabel: configured ? T.via + " " + sm.fromEmail : T.configurePrompt,
+      smtpInlineLabel: configured ? T.via + " " + sm.user : T.configurePrompt,
       smtpInlineOk: configured,
       readyToSend: readyCount + " / " + total + " " + T.readyToSend,
       sentInline: "✓ " + sentCount + " " + T.sent,

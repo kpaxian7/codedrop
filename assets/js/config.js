@@ -22,7 +22,7 @@ window.CODEDROP_CONFIG = {
 
   /* ---- "Star on GitHub" button ------------------------------------------ */
   github: {
-    show: true, // set false to hide the button entirely
+    show: false, // set false to hide the button entirely
     url: "https://github.com/kpaxian7/codedrop", // ← point this at your repo
     stars: "1.2k", // text shown after the star; set to "" to hide the count
   },
