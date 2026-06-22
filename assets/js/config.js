@@ -38,17 +38,21 @@ window.CODEDROP_CONFIG = {
 
   /* ---- Sending ----------------------------------------------------------
    * Browsers cannot speak SMTP directly, so real sending needs a tiny backend.
-   *   - endpoint: null  -> DEMO MODE. Nothing is sent; rows are marked "sent"
-   *                        with a short animation so you can try the UI safely.
-   *   - endpoint: "..." -> REAL MODE. The app POSTs the batch to this URL and
-   *                        marks each row by the per-recipient result it returns.
-   *
-   * A ready-to-run reference backend lives in `examples/server/` and implements
-   * the exact contract documented in the README. Point `endpoint` at it, e.g.
-   * "http://localhost:8787/api/send", and you're sending for real.
+   *   - endpoint: null  -> DEMO MODE *unless a backend is auto-detected*. The
+   *                        bundled server (examples/server) serves this page AND
+   *                        answers GET /health; the front-end probes it and, if
+   *                        found, switches itself to real sending on /api/send.
+   *                        So: `npm start` in examples/server, open the page it
+   *                        serves, and you're sending for real — no edit here.
+   *                        On a static host with no backend (e.g. GitHub Pages)
+   *                        the probe fails and it stays in safe demo mode.
+   *   - endpoint: "..." -> REAL MODE, explicit. POSTs the batch to this URL.
+   *                        Overrides auto-detection — use it to point at a
+   *                        separately-hosted backend, e.g.
+   *                        "https://api.example.com/api/send".
    * --------------------------------------------------------------------- */
   api: {
-    endpoint: null, // e.g. "http://localhost:8787/api/send"
+    endpoint: null, // null => auto-detect bundled backend; or set a URL explicitly
     headers: {}, // optional extra headers, e.g. { "x-api-key": "…" }
   },
 

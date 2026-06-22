@@ -3,15 +3,17 @@
  * ============================================================================
  * The CodeDrop UI is a static front-end and ships in "demo mode" (nothing is
  * actually sent). Because browsers cannot speak SMTP, real sending needs a
- * tiny server. This is that server — ~100 lines, one dependency (nodemailer).
+ * tiny server. This is that server — one dependency (nodemailer). It serves
+ * BOTH the UI and the send API, so self-hosting is a single process:
  *
  *   1. cd examples/server
  *   2. cp .env.example .env   # optional — see notes below
  *   3. npm install
- *   4. npm start              # listens on http://localhost:8787
+ *   4. npm start              # open http://localhost:8787
  *
- * Then set, in assets/js/config.js:
- *   api: { endpoint: "http://localhost:8787/api/send" }
+ * No config edit is needed: the front-end probes GET /health and, finding this
+ * backend, switches itself from demo mode to real sending automatically. (You
+ * can still hard-set api.endpoint in assets/js/config.js to override.)
  *
  * SMTP credentials:
  *   - By default the SMTP settings entered in the UI are used (they are sent
@@ -26,7 +28,21 @@
 "use strict";
 
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const nodemailer = require("nodemailer");
+
+// The repo root (two levels up from examples/server) — served as the static UI so
+// a self-hoster runs ONE process: this server provides both the page and /api/send.
+const STATIC_ROOT = path.resolve(__dirname, "..", "..");
+const MIME = {
+  ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml",
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".ico": "image/x-icon", ".webmanifest": "application/manifest+json",
+  ".woff2": "font/woff2", ".map": "application/json; charset=utf-8",
+};
 
 // Load .env if present (no dependency required).
 try { require("fs").readFileSync(require("path").join(__dirname, ".env"), "utf8")
@@ -95,6 +111,26 @@ async function handleSend(body, res) {
   json(res, 200, { results });
 }
 
+// Serve a file from STATIC_ROOT. Guards against path traversal; 404s on a miss
+// so the caller can fall through. "/" maps to index.html.
+function serveStatic(urlPath, req, res) {
+  try { urlPath = decodeURIComponent(urlPath); } catch (e) {}
+  if (urlPath === "/" || urlPath === "") urlPath = "/index.html";
+  const filePath = path.resolve(STATIC_ROOT, "." + urlPath);
+  if (filePath !== STATIC_ROOT && !filePath.startsWith(STATIC_ROOT + path.sep)) {
+    return json(res, 403, { error: "forbidden" });
+  }
+  fs.stat(filePath, (err, st) => {
+    if (err || !st.isFile()) return json(res, 404, { error: "not found" });
+    res.writeHead(200, {
+      "Content-Type": MIME[path.extname(filePath).toLowerCase()] || "application/octet-stream",
+      "Access-Control-Allow-Origin": ALLOW_ORIGIN,
+    });
+    if (req.method === "HEAD") return res.end();
+    fs.createReadStream(filePath).pipe(res);
+  });
+}
+
 function json(res, status, obj) {
   const payload = JSON.stringify(obj);
   res.writeHead(status, {
@@ -122,13 +158,19 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-  if (req.method === "GET" && req.url === "/health") return json(res, 200, { ok: true });
+  const urlPath = req.url.split("?")[0];
+  // GET /health is the marker the front-end probes to auto-enable real sending.
+  if (req.method === "GET" && urlPath === "/health") return json(res, 200, { ok: true });
+  // Everything else: serve the static UI (index.html + assets/) from the repo root.
+  if (req.method === "GET" || req.method === "HEAD") return serveStatic(urlPath, req, res);
   json(res, 404, { error: "not found" });
 });
 
 server.listen(PORT, () => {
-  console.log(`CodeDrop backend listening on http://localhost:${PORT}`);
-  console.log(`  POST /api/send   — send a batch`);
+  console.log(`CodeDrop is running — open http://localhost:${PORT}`);
+  console.log(`  GET  /            — the CodeDrop UI (served from ${STATIC_ROOT})`);
+  console.log(`  POST /api/send    — send a batch`);
+  console.log(`  GET  /health      — backend probe (front-end auto-enables real sending)`);
   console.log(`  SMTP source: ${FROM_ENV ? ".env (SMTP_FROM_ENV=true)" : "request body (from the UI)"}`);
   if (ALLOW_ORIGIN === "*") {
     console.warn("  ⚠ CORS is open to ALL origins (CORS_ORIGIN unset). Fine for local dev;");

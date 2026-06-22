@@ -96,7 +96,7 @@ codedrop/
 | `detectBase64` | 是否自动解码 Base64 邮箱地址。 |
 | `github` | 「Star」按钮（`url`、`stars`、`show`）。 |
 | `persist` / `persistSmtpPassword` | localStorage 持久化行为。 |
-| `api.endpoint` | `null` = 演示模式；填 URL = 真实发送。 |
+| `api.endpoint` | `null` = 自动探测自带后端（否则演示模式）；填 URL = 真实发送。 |
 | `providers` | SMTP 快速预设（可自行增删）。 |
 | `seedRows` | 首次加载时的示例行。 |
 
@@ -118,25 +118,31 @@ codedrop/
 
 ## 开启真实发送
 
-浏览器无法直接建立 SMTP 连接，所以真实发送需要一个小后端。仓库里有一个开箱即用的：
-[`examples/server/`](examples/server/)。
+浏览器无法直接建立 SMTP 连接（而且把 SMTP 密码塞进静态页面会暴露给每个访客），
+所以真实发送需要一个小后端。仓库里有一个开箱即用的：[`examples/server/`](examples/server/) ——
+它还会**顺带托管前端**，所以是**一条命令、无需改配置**：
 
 ```bash
 cd examples/server
 npm install
-npm start                      # http://localhost:8787
+npm start                      # 打开 http://localhost:8787
 ```
 
-然后在 `assets/js/config.js` 里：
+打开它打印的地址即可真实发信。前端会探测 `GET /health`，发现后端后自动从演示模式
+切换到真实发送，**不用动 config.js**。若从没有后端的静态站点（比如 GitHub Pages
+那个 demo）打开，探测失败，就安全地保持演示模式。
+
+想把前端单独部署（静态托管 + 后端在另一个域名）？那就显式填 endpoint —— 显式值
+会覆盖自动探测：
 
 ```js
-api: { endpoint: "http://localhost:8787/api/send" }
+api: { endpoint: "https://your-backend.example.com/api/send" }
 ```
 
-刷新页面 —— 「发送」就会真的发信了。后端的 SMTP 凭据可以来自界面（默认），也可以
-来自它自己的 `.env`（设 `SMTP_FROM_ENV=true`，适合多人共享部署）。完整契约与部署
-说明见[后端 README](examples/server/README.md)。任何实现了同样 `POST /api/send`
-契约的服务器都能用 —— 你也可以把 CodeDrop 接到自己的后端上。
+后端的 SMTP 凭据可以来自界面（默认），也可以来自它自己的 `.env`（设
+`SMTP_FROM_ENV=true`，适合多人共享部署）。完整契约与部署说明见[后端
+README](examples/server/README.md)。任何实现了同样 `POST /api/send` 契约的服务器
+都能用 —— 你也可以把 CodeDrop 接到自己的后端上。
 
 ## 安全须知
 

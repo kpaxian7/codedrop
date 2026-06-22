@@ -101,7 +101,7 @@ reload, no rebuild. Highlights:
 | `detectBase64` | Auto-decode Base64 email addresses. |
 | `github` | The "Star" button (`url`, `stars`, `show`). |
 | `persist` / `persistSmtpPassword` | localStorage behaviour. |
-| `api.endpoint` | `null` = demo mode; a URL = real sending. |
+| `api.endpoint` | `null` = auto-detect the bundled backend (else demo); a URL = real sending. |
 | `providers` | The SMTP quick-setup presets (add your own). |
 | `seedRows` | Example rows shown on first load. |
 
@@ -124,26 +124,35 @@ into play if you run the [backend](#turning-on-real-sending).
 
 ## Turning on real sending
 
-Browsers can't open SMTP connections, so real sending needs a small backend.
-A ready-to-run one lives in [`examples/server/`](examples/server/):
+Browsers can't open SMTP connections (and shipping your SMTP password in a static
+page would expose it to every visitor), so real sending needs a small backend.
+A ready-to-run one lives in [`examples/server/`](examples/server/) — and it
+serves the UI too, so it's a **single command, no config edit**:
 
 ```bash
 cd examples/server
 npm install
-npm start                      # http://localhost:8787
+npm start                      # open http://localhost:8787
 ```
 
-Then in `assets/js/config.js`:
+Open the URL it prints and send for real. The front-end probes `GET /health`,
+detects the backend, and switches itself from demo to real sending
+automatically. Served from a static host with no backend (like the GitHub Pages
+demo), the probe fails and it stays safely in demo mode.
+
+Prefer to host the front-end separately (static host + backend on another
+origin)? Set the endpoint explicitly — an explicit value overrides
+auto-detection:
 
 ```js
-api: { endpoint: "http://localhost:8787/api/send" }
+api: { endpoint: "https://your-backend.example.com/api/send" }
 ```
 
-Reload — the Send button now sends for real. The backend can take SMTP
-credentials from the UI (default) or from its own `.env` (`SMTP_FROM_ENV=true`)
-for shared deployments. Full contract and deploy notes are in the
-[backend README](examples/server/README.md). Any server that implements the
-same `POST /api/send` contract works — wire CodeDrop to your own if you prefer.
+The backend can take SMTP credentials from the UI (default) or from its own
+`.env` (`SMTP_FROM_ENV=true`) for shared deployments. Full contract and deploy
+notes are in the [backend README](examples/server/README.md). Any server that
+implements the same `POST /api/send` contract works — wire CodeDrop to your own
+if you prefer.
 
 ## Security notes
 

@@ -156,4 +156,38 @@
   }
 
   window.CodeDropSender = { sendBatch: sendBatch, sendTest: sendTest, isReal: isReal };
+
+  /**
+   * Auto-detect a same-origin backend. If api.endpoint isn't explicitly set but
+   * the bundled server is serving this page (it answers GET /health), switch to
+   * real sending on its /api/send route. On a static host (GitHub Pages) or a
+   * file:// page the probe simply fails and we stay in demo mode — so the public
+   * demo keeps working while a self-hoster gets real sending with zero config.
+   */
+  (function autodetectBackend() {
+    var c = window.CODEDROP_CONFIG = window.CODEDROP_CONFIG || {};
+    c.api = c.api || {};
+    if (isReal()) return; // an explicit endpoint always wins
+    if (typeof fetch !== "function") return;
+    if (!/^https?:$/.test(location.protocol)) return; // file:// etc. → stay demo
+    // Resolve relative to the page so it works at the root or under a sub-path.
+    var healthUrl, sendUrl;
+    try {
+      healthUrl = new URL("health", document.baseURI).href;
+      sendUrl = new URL("api/send", document.baseURI).href;
+    } catch (e) { return; }
+
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 3000) : null;
+    fetch(healthUrl, { method: "GET", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
+      .then(function (d) {
+        if (d && d.ok === true) {
+          c.api.endpoint = sendUrl;
+          if (window.console) console.info("[CodeDrop] backend detected — real sending enabled (" + sendUrl + ")");
+        }
+      })
+      .catch(function () { /* no backend reachable → demo mode */ })
+      .then(function () { if (timer) clearTimeout(timer); });
+  })();
 })();

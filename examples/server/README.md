@@ -1,23 +1,25 @@
 # CodeDrop reference backend
 
-A ~100-line Node server that turns CodeDrop from a demo into a real sender. One
-dependency (`nodemailer`), no framework.
+A small Node server that turns CodeDrop from a demo into a real sender. One
+dependency (`nodemailer`), no framework. It serves **both** the CodeDrop UI and
+the send API, so self-hosting is a single process.
 
 ## Run
 
 ```bash
 cd examples/server
 npm install
-npm start            # http://localhost:8787
+npm start            # open http://localhost:8787
 ```
 
-Then point the front-end at it — in `assets/js/config.js`:
+Open the URL it prints and send for real — **no config edit needed**. The
+front-end probes `GET /health`, finds this backend, and switches itself from
+demo mode to real sending on `/api/send` automatically.
 
-```js
-api: { endpoint: "http://localhost:8787/api/send" }
-```
-
-Reload CodeDrop and the "Send" button now sends for real.
+> Hosting the front-end separately instead (e.g. GitHub Pages + this backend on
+> another origin)? Then set the endpoint explicitly in `assets/js/config.js`:
+> `api: { endpoint: "https://your-backend.example.com/api/send" }` — an explicit
+> value overrides auto-detection. Remember to set `CORS_ORIGIN` (see Deploying).
 
 ## Where SMTP credentials come from
 

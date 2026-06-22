@@ -69,6 +69,13 @@
     else key = "ready";
     return { isB64: !!dec, email: email, key: key };
   }
+  // A row is sendable when it has a valid recipient and a code — independent of
+  // whether it was sent before, so the Send button can fire again on every click.
+  function isSendable(r) {
+    var dec = decodeB64(r.raw);
+    var email = dec || (r.raw || "").trim();
+    return EMAIL.test(email) && !!(r.code || "").trim();
+  }
   function parseImport() {
     var txt = state.importText || "";
     if (state.importMode === "codes") {
@@ -138,7 +145,7 @@
   function send() {
     if (state.sending) return;
     var T = t();
-    var ready = state.rows.filter(function (r) { return classify(r).key === "ready"; });
+    var ready = state.rows.filter(isSendable);
     if (!ready.length) { toast(T.nothingReady, "warn"); return; }
 
     var subject = state.subject == null ? T.tplSubject : state.subject;
@@ -195,7 +202,7 @@
 
     var total = rows.length;
     var keys = state.rows.map(function (r) { return classify(r).key; });
-    var readyCount = keys.filter(function (k) { return k === "ready" || k === "sent"; }).length;
+    var readyCount = state.rows.filter(isSendable).length; // sendable now — matches send()
     var sentCount = keys.filter(function (k) { return k === "sent"; }).length;
 
     var first = state.rows.find(function (r) {
@@ -244,9 +251,10 @@
       sentInline: "✓ " + sentCount + " " + T.sent,
       sending: state.sending,
       sendIcon: state.sending ? "◴" : "↗",
+      // Always "Send" — never flips to "Sent". Each click re-sends; the button is
+      // disabled mid-send (see `sending`) to guard against double-clicks.
       sendLabel: state.sending ? T.sending
-        : (sentCount > 0 && sentCount === readyCount ? fmt(T.sentDone, sentCount)
-          : (readyCount === 1 ? T.sendOne : fmt(T.sendMany, readyCount))),
+        : (readyCount === 1 ? T.sendOne : fmt(T.sendMany, readyCount)),
       // import modal
       importOpen: state.importOpen, isCodes: isCodes,
       importText: state.importText,
@@ -410,7 +418,7 @@
       "</div>" : "";
     var disabled = vm.detectedCount === 0;
     return '' +
-    '<div class="overlay" data-action="overlay-import">' +
+    '<div class="overlay" data-k="overlay" data-action="overlay-import">' +
       '<div class="modal" data-stop role="dialog" aria-modal="true" aria-label="' + esc(T.importTitle) + '">' +
         '<div class="modal__head">' +
           "<div><div class=\"modal__title\">" + esc(T.importTitle) + '</div><div class="modal__sub">' + esc(T.importSub) + "</div></div>" +
@@ -451,8 +459,8 @@
         ' data-field="smtp-' + key + '" data-fk="smtp-' + key + '" value="' + esc(sm[key]) + '" placeholder="' + esc(ph) + '"></div>';
     }
     return '' +
-    '<div class="drawer-scrim" data-action="close-settings"></div>' +
-    '<aside class="drawer" role="dialog" aria-modal="true" aria-label="' + esc(T.smtpConfig) + '">' +
+    '<div class="drawer-scrim" data-k="drawer-scrim" data-action="close-settings"></div>' +
+    '<aside class="drawer" data-k="drawer" role="dialog" aria-modal="true" aria-label="' + esc(T.smtpConfig) + '">' +
       '<div class="drawer__head">' +
         "<div><div class=\"drawer__title\">" + esc(T.smtpConfig) + '</div><div class="drawer__sub">' + esc(T.smtpConfigSub) + "</div></div>" +
         '<button class="close-btn" data-action="toggle-settings" aria-label="Close">×</button>' +
@@ -557,13 +565,94 @@
     var ss = null, se = null;
     if (fk) { try { ss = active.selectionStart; se = active.selectionEnd; } catch (e) {} }
 
-    app.innerHTML = view(compute());
+    // Reconcile the DOM in place instead of replacing innerHTML. Persisting the
+    // existing nodes keeps focus/caret/IME intact and — crucially — stops the
+    // drawer & modal from replaying their open animation on every keystroke.
+    var tpl = document.createElement("template");
+    tpl.innerHTML = view(compute());
+    morphChildren(app, tpl.content);
 
+    // Safety net: if the focused field was somehow replaced, restore focus+caret.
     if (fk) {
       var el = app.querySelector('[data-fk="' + fk + '"]');
-      if (el) { el.focus(); if (ss != null) { try { el.setSelectionRange(ss, se); } catch (e) {} } }
+      if (el && el !== document.activeElement) {
+        el.focus();
+        if (ss != null) { try { el.setSelectionRange(ss, se); } catch (e) {} }
+      }
     }
     manageDialogFocus();
+  }
+
+  /* ---- DOM morph (in-place reconciliation) ------------------------------- */
+  // A tiny morphdom-style diff: reuse existing nodes where the tag (and key, if
+  // any) match, update only what changed, and add/remove the rest. Keyed nodes
+  // (data-k / data-fk / data-row-id / id) match by key; others match by position.
+  function keyOf(node) {
+    if (!node || node.nodeType !== 1) return null;
+    return node.getAttribute("data-k") || node.getAttribute("data-fk") ||
+      node.getAttribute("data-row-id") || node.id || null;
+  }
+  function sameType(a, b) {
+    if (a.nodeType !== b.nodeType) return false;
+    if (a.nodeType === 1) return a.tagName === b.tagName;
+    return true;
+  }
+  function syncAttrs(oldEl, newEl) {
+    var na = newEl.attributes, oa = oldEl.attributes, i;
+    for (i = 0; i < na.length; i++) {
+      if (oldEl.getAttribute(na[i].name) !== na[i].value) oldEl.setAttribute(na[i].name, na[i].value);
+    }
+    for (i = oa.length - 1; i >= 0; i--) {
+      if (!newEl.hasAttribute(oa[i].name)) oldEl.removeAttribute(oa[i].name);
+    }
+    // Boolean props don't reliably follow their attribute — set them explicitly.
+    if ("disabled" in oldEl) oldEl.disabled = newEl.hasAttribute("disabled");
+  }
+  function morphNode(oldNode, newNode) {
+    if (oldNode.nodeType !== 1) {
+      if (oldNode.nodeValue !== newNode.nodeValue) oldNode.nodeValue = newNode.nodeValue;
+      return;
+    }
+    syncAttrs(oldNode, newNode);
+    var tag = oldNode.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+      // Value lives in a property, not just an attribute. Never clobber the field
+      // the user is typing into; otherwise push the latest value from state.
+      var desired = tag === "TEXTAREA" ? newNode.value : (newNode.getAttribute("value") || "");
+      if (oldNode !== document.activeElement && oldNode.value !== desired) oldNode.value = desired;
+      return;
+    }
+    morphChildren(oldNode, newNode);
+  }
+  function morphChildren(oldParent, newParent) {
+    var oldNodes = Array.prototype.slice.call(oldParent.childNodes);
+    var newNodes = Array.prototype.slice.call(newParent.childNodes);
+
+    var oldByKey = {};
+    oldNodes.forEach(function (n) { var k = keyOf(n); if (k != null && !(k in oldByKey)) oldByKey[k] = n; });
+
+    var used = [];
+    var up = 0; // cursor for positional (unkeyed) matching
+    var result = newNodes.map(function (nn) {
+      var nk = keyOf(nn), reuse = null;
+      if (nk != null && oldByKey[nk] && used.indexOf(oldByKey[nk]) < 0 && sameType(oldByKey[nk], nn)) {
+        reuse = oldByKey[nk];
+      } else {
+        while (up < oldNodes.length) {
+          var cand = oldNodes[up++];
+          if (used.indexOf(cand) >= 0 || keyOf(cand) != null) continue;
+          if (sameType(cand, nn)) { reuse = cand; break; }
+        }
+      }
+      if (reuse) { used.push(reuse); morphNode(reuse, nn); return reuse; }
+      return document.importNode(nn, true);
+    });
+
+    oldNodes.forEach(function (n) { if (used.indexOf(n) < 0 && n.parentNode === oldParent) oldParent.removeChild(n); });
+    for (var i = 0; i < result.length; i++) {
+      var node = result[i], current = oldParent.childNodes[i] || null;
+      if (current !== node) oldParent.insertBefore(node, current);
+    }
   }
 
   // Move focus into a dialog when it opens; return it to the trigger when it closes.
