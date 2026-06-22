@@ -15,7 +15,7 @@ window.CODEDROP_CONFIG = {
   version: "v0.1.0", // small label after the name; set to "" to hide
 
   /* ---- Defaults ---------------------------------------------------------- */
-  defaultLang: "en", // "en" | "zh" — initial language (a user toggle overrides & persists)
+  defaultLang: "zh", // "en" | "zh" — initial language (a user toggle overrides & persists)
   accent: "emerald", // "emerald" | "blue" | "violet" — primary colour
   showPreview: true, // show the live email preview pane next to the editor
   detectBase64: true, // auto-decode Base64 email addresses in the recipient table

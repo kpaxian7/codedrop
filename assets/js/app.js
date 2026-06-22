@@ -515,7 +515,10 @@
     var a = el.dataset.action;
     switch (a) {
       case "overlay-import": if (!stop) setState({ importOpen: false }); break;
-      case "lang": setState({ lang: el.dataset.lang }); break;
+      case "lang":
+        setState({ lang: el.dataset.lang });
+        document.documentElement.setAttribute("lang", el.dataset.lang === "zh" ? "zh-CN" : "en");
+        break;
       case "toggle-settings": setState(function (s) { return { settingsOpen: !s.settingsOpen }; }); break;
       case "close-settings": setState({ settingsOpen: false }); break;
       case "open-import": setState({ importOpen: true }); break;

@@ -2,197 +2,60 @@
 
 # › codedrop
 
-**Send redemption codes from your own SMTP, one click at a time.**
+**用自己的 SMTP,一键群发兑换码。**
 
-Map each recipient to a one-time code, write one template with a `{{code}}`
-token, and send the whole batch from your own mailbox. No build step, no SaaS,
-no vendor lock-in — it's a static page plus an optional 100-line backend.
+把每个收件人对应一个一次性兑换码,写一份带 `{{code}}` 占位符的模板,从自己的邮箱整批发出。零构建、无 SaaS、可自托管——一个静态页 + 可选的百行后端。
 
-[![Live demo](https://img.shields.io/badge/demo-live-1c7a4d.svg)](https://kpaxian7.github.io/codedrop/)
+[![在线 Demo](https://img.shields.io/badge/demo-live-1c7a4d.svg)](https://kpaxian7.github.io/codedrop/)
 [![CI](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml/badge.svg)](https://github.com/kpaxian7/codedrop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
-![No build step](https://img.shields.io/badge/build-none-brightgreen.svg)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-1c7a4d.svg)](CONTRIBUTING.md)
 
-**🔗 [Live demo](https://kpaxian7.github.io/codedrop/)** — runs in demo mode (nothing is actually emailed).
+**🔗 [在线 Demo](https://kpaxian7.github.io/codedrop/)** —— 运行在演示模式(不会真正发信)。
 
-[Quick start](#quick-start) · [Configuration](#configuration) · [Deploy](#deploy) · [Real sending](#turning-on-real-sending) · [Security](#security-notes)
-
-**English** · [中文](README.zh-CN.md)
+中文 · [English](README.en.md)
 
 </div>
 
 ---
 
-## What it does
+## 它能做什么
 
-CodeDrop is a small self-hosted tool for the very common "I have a pile of
-redemption / license / invite codes and a list of people to send them to" job.
+- **模板 + 占位符**:邮件只写一次,`{{code}}` 按收件人替换,边写边预览。
+- **收件人表**:粘贴/输入邮箱与兑换码,每行显示状态(就绪 / 缺码 / 无效 / 空 / 已发);支持 Base64 邮箱自动解码与批量导入。
+- **自带 SMTP**:Gmail / Outlook / Fastmail / iCloud / QQ / 163 预设,附各家「应用专用密码」指引。
+- **中英双语 + 本地持久化**:一键切换语言;模板、收件人、SMTP 设置存在浏览器本地,刷新不丢。
 
-- **Template + token.** Write the email once; `{{code}}` is replaced per
-  recipient. Live preview as you type.
-- **Recipient table.** Paste or type emails and codes. Each row shows its
-  status (`ready` / `no code` / `invalid` / `empty` / `sent`).
-- **Base64-aware.** Email fields accept plain addresses *or* Base64 — encoded
-  addresses are decoded automatically.
-- **Bulk import.** Paste a blob of codes, or `email, code` pairs (comma / tab /
-  space separated), and it splits into rows.
-- **Bring-your-own SMTP.** Quick presets for Gmail, Outlook, Fastmail, iCloud,
-  QQ and 163, with app-password guidance for each.
-- **Bilingual.** English and 中文 out of the box; add more in one file.
-- **Persists locally.** Your template, recipients and SMTP settings are saved
-  to `localStorage` so a refresh never loses work.
+## 部署
 
-> **Demo mode by default.** Out of the box nothing is actually emailed — the
-> Send button runs a realistic simulation so you can try everything safely.
-> Flip on [real sending](#turning-on-real-sending) when you're ready.
+它是个静态站点,分两种用法:
 
-## Quick start
-
-It's a static site. Clone it and serve the folder — pick any option:
+**① 仅演示(不会真正发信)** —— 当静态站点托管即可:
 
 ```bash
 git clone https://github.com/kpaxian7/codedrop.git
-cd codedrop
-
-# Option A — npm script (Python under the hood)
-npm run dev          # http://localhost:5173
-
-# Option B — Python directly
-python3 -m http.server 5173
-
-# Option C — Node
-npx serve .
-
-# Option D — just open index.html in a browser
+cd codedrop && python3 -m http.server 5173   # 或丢到任意静态托管
 ```
 
-Then visit `http://localhost:5173`. That's it — you're in demo mode (nothing is
-actually emailed). See [Turning on real sending](#turning-on-real-sending) when ready.
+打开 `http://localhost:5173` 试用。
 
-## Project layout
-
-```
-codedrop/
-├── index.html              # the page; loads the scripts below in order
-├── assets/
-│   ├── css/styles.css      # all styles (design tokens at the top)
-│   ├── favicon.svg
-│   └── js/
-│       ├── config.js       # ← edit me: branding, accent, providers, endpoint
-│       ├── i18n.js         # ← edit me: all UI copy + default email template
-│       ├── send.js         # demo/real send abstraction (backend contract)
-│       └── app.js          # state + render + behaviour (no dependencies)
-└── examples/
-    └── server/             # optional reference backend (Node + nodemailer)
-```
-
-## Configuration
-
-Almost everything you'd customise lives in **`assets/js/config.js`** — edit and
-reload, no rebuild. Highlights:
-
-| Key | What it does |
-| --- | --- |
-| `appName`, `version` | Branding shown next to the logo. |
-| `defaultLang` | `"en"` or `"zh"` — initial language. |
-| `accent` | `"emerald"`, `"blue"` or `"violet"`. |
-| `showPreview` | Show the live email preview pane. |
-| `detectBase64` | Auto-decode Base64 email addresses. |
-| `github` | The "Star" button (`url`, `stars`, `show`). |
-| `persist` / `persistSmtpPassword` | localStorage behaviour. |
-| `api.endpoint` | `null` = auto-detect the bundled backend (else demo); a URL = real sending. |
-| `providers` | The SMTP quick-setup presets (add your own). |
-| `seedRows` | Example rows shown on first load. |
-
-The **default email wording** (subject + body) and **every visible string**
-live in **`assets/js/i18n.js`** under `tplSubject` / `tplBody`. Edit those to
-make the campaign yours. To add a language, copy the `en` block, translate it,
-and add a matching button in `topbar()` (`assets/js/app.js`).
-
-## Deploy
-
-Because it's static, deployment is "upload these files":
-
-- **GitHub Pages** — push the repo, enable Pages on the default branch (root).
-- **Netlify / Cloudflare Pages / Vercel** — new project, no build command,
-  publish directory `.` (the repo root).
-- **Any web server** — copy the folder into your web root (nginx/Apache/Caddy).
-
-No environment variables are needed for the static site itself. They only come
-into play if you run the [backend](#turning-on-real-sending).
-
-## Turning on real sending
-
-Browsers can't open SMTP connections (and shipping your SMTP password in a static
-page would expose it to every visitor), so real sending needs a small backend.
-A ready-to-run one lives in [`examples/server/`](examples/server/) — and it
-serves the UI too, so it's a **single command, no config edit**:
+**② 真实发送** —— 浏览器不能直连 SMTP,所以跑一下自带后端(它会同时托管页面,**一条命令、无需改配置**):
 
 ```bash
-cd examples/server
-npm install
-npm start                      # open http://localhost:8787
+cd examples/server && npm install && npm start   # 打开它打印的地址
 ```
 
-Open the URL it prints and send for real. The front-end probes `GET /health`,
-detects the backend, and switches itself from demo to real sending
-automatically. Served from a static host with no backend (like the GitHub Pages
-demo), the probe fails and it stays safely in demo mode.
+前端探测到后端后会**自动切换到真实发送**;没有后端的静态托管则安全地停在演示模式。想前后端分开部署,就在 `assets/js/config.js` 里显式填 `api.endpoint` 覆盖自动探测。
 
-Prefer to host the front-end separately (static host + backend on another
-origin)? Set the endpoint explicitly — an explicit value overrides
-auto-detection:
+## 配置
 
-```js
-api: { endpoint: "https://your-backend.example.com/api/send" }
-```
+改 `assets/js/config.js`(品牌、配色、SMTP 预设、`api.endpoint`);所有文案与默认邮件模板在 `assets/js/i18n.js`。改完刷新即可,无需构建。
 
-The backend can take SMTP credentials from the UI (default) or from its own
-`.env` (`SMTP_FROM_ENV=true`) for shared deployments. Full contract and deploy
-notes are in the [backend README](examples/server/README.md). Any server that
-implements the same `POST /api/send` contract works — wire CodeDrop to your own
-if you prefer.
+## 安全
 
-## Security notes
-
-CodeDrop is **self-hosted on purpose** — credentials stay within your own
-deployment. A few things to keep in mind:
-
-- **App passwords, not your login password.** Gmail / Outlook / iCloud /
-  Fastmail / QQ / 163 all reject your normal password over SMTP. Generate an
-  app-specific password (some call it an "authorization code") — the SMTP drawer
-  links the exact path for each provider.
-- **The SMTP password is not persisted by default** — you re-enter it each
-  session (everything else, including host/user, is saved to `localStorage`).
-  On a trusted single-user machine you can set `persistSmtpPassword: true` in
-  `config.js` for convenience.
-- **Serve the backend over HTTPS** and set `CORS_ORIGIN` to your exact
-  front-end origin (never `*`) in production, so credentials are never sent in
-  the clear or accepted from arbitrary sites.
-- **Respect anti-spam law.** Only message people who opted in, include a way to
-  unsubscribe/reply, and mind your provider's sending limits.
-
-## Tech
-
-Plain HTML, CSS and JavaScript — **no framework, no build step, no
-dependencies** for the front-end. The whole UI is a pure function of state with
-focus/IME-safe re-rendering (see `assets/js/app.js`). The only dependency
-anywhere is `nodemailer`, in the optional backend.
-
-## Contributing
-
-Issues and PRs welcome! Please read:
-
-- [CONTRIBUTING.md](CONTRIBUTING.md) — dev setup, project map, how to add a language
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — be kind
-- [SECURITY.md](SECURITY.md) — report vulnerabilities privately
-- [CHANGELOG.md](CHANGELOG.md) — notable changes
-
-Run `npm run check` before opening a PR (it verifies every script parses).
+用**应用专用密码**(不是登录密码);SMTP 密码默认不持久化,每次重新输入;生产环境后端务必走 HTTPS 并设 `CORS_ORIGIN`。细节见[后端 README](examples/server/README.md)。
 
 ## License
 
-[MIT](LICENSE) — do what you like, just keep the notice.
+[MIT](LICENSE)
 
-<sub>UI originally designed with Claude.</sub>
+<sub>UI 最初由 Claude 设计。</sub>
