@@ -142,15 +142,20 @@
   }
 
   /* ---- sending ----------------------------------------------------------- */
-  function send() {
+  // Send the whole batch (action-bar button) or a single row (per-row button).
+  function send() { dispatchSend(state.rows.filter(isSendable)); }
+  function sendRow(id) {
+    var r = state.rows.find(function (x) { return x.id === id; });
+    if (r && isSendable(r)) dispatchSend([r]);
+  }
+  function dispatchSend(rows) {
     if (state.sending) return;
     var T = t();
-    var ready = state.rows.filter(isSendable);
-    if (!ready.length) { toast(T.nothingReady, "warn"); return; }
+    if (!rows.length) { toast(T.nothingReady, "warn"); return; }
 
     var subject = state.subject == null ? T.tplSubject : state.subject;
     var body = state.body == null ? T.tplBody : state.body;
-    var messages = ready.map(function (r) {
+    var messages = rows.map(function (r) {
       var c = classify(r);
       var code = (r.code || "").trim();
       return { id: r.id, to: c.email, subject: subject.split("{{code}}").join(code), body: body.split("{{code}}").join(code) };
@@ -197,6 +202,7 @@
       return {
         id: r.id, num: String(i + 1).padStart(2, "0"), raw: r.raw, code: r.code,
         isB64: c.isB64, decoded: c.email, statusKey: c.key, statusLabel: ST[c.key],
+        sendable: isSendable(r),
       };
     });
 
@@ -368,7 +374,10 @@
       '<div class="status-cell col-status">' +
         '<span class="status status--' + r.statusKey + '"><span class="dot"></span>' + esc(r.statusLabel) + "</span>" +
       "</div>" +
-      '<button class="icon-btn" data-action="remove-row" data-id="' + r.id + '" aria-label="Remove">×</button>' +
+      '<div class="row-actions">' +
+        '<button class="icon-btn icon-btn--send" data-action="send-row" data-id="' + r.id + '"' + (r.sendable && !vm.sending ? "" : " disabled") + ' aria-label="' + esc(T.sendRow) + '" title="' + esc(T.sendRow) + '">↗</button>' +
+        '<button class="icon-btn" data-action="remove-row" data-id="' + r.id + '" aria-label="' + esc(T.removeRow) + '">×</button>' +
+      "</div>" +
     "</div>";
   }
 
@@ -526,6 +535,7 @@
       case "insert-var": insertVar(); break;
       case "add-row": addRow(); break;
       case "remove-row": removeRow(+el.dataset.id); break;
+      case "send-row": sendRow(+el.dataset.id); break;
       case "import-mode": setState({ importMode: el.dataset.mode }); break;
       case "apply-import": applyImport(); break;
       case "provider": applyProvider(el.dataset.id); break;

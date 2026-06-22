@@ -237,7 +237,7 @@ a { color: inherit; }
 
 /* ---- Recipients table ----------------------------------------------------- */
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.rec-grid { display: grid; grid-template-columns: 46px 1fr 280px 116px 42px; }
+.rec-grid { display: grid; grid-template-columns: 46px 1fr 280px 116px 70px; }
 .table__head {
   align-items: center; padding: 0 14px; height: 38px;
   border-bottom: 1px solid var(--border-2); background: #fafaf8;
@@ -270,6 +270,7 @@ a { color: inherit; }
 .status--invalid { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
 .status--empty { background: var(--input-bg); border-color: var(--border-2); color: var(--muted-5); }
 
+.row-actions { display: flex; gap: 4px; }
 .icon-btn {
   margin-top: 5px; width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
@@ -277,7 +278,9 @@ a { color: inherit; }
   font-size: 15px; color: var(--muted-6); cursor: pointer;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
-.icon-btn:hover { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.icon-btn:not(:disabled):hover { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.icon-btn--send:not(:disabled):hover { background: var(--accent-soft-bg); border-color: var(--accent-soft-border); color: var(--accent); }
+.icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .add-row {
   display: flex; align-items: center; gap: 8px; width: 100%;
@@ -473,7 +476,7 @@ a { color: inherit; }
 /* ---- Responsive ----------------------------------------------------------- */
 @media (max-width: 860px) {
   .tpl-grid { grid-template-columns: 1fr; }
-  .rec-grid { grid-template-columns: 36px 1fr 160px 96px 36px; }
+  .rec-grid { grid-template-columns: 36px 1fr 160px 96px 70px; }
   .rec-cell .input { font-size: 12px; }
 }
 @media (max-width: 620px) {
@@ -484,7 +487,7 @@ a { color: inherit; }
   .topbar__star-label { display: none; } /* collapse the Star button to its icon */
   .topbar__star { padding: 0 10px; }
   .main { padding: 22px 14px 150px; }
-  .rec-grid { grid-template-columns: 28px 1fr 96px 28px; }
+  .rec-grid { grid-template-columns: 28px 1fr 96px 64px; }
   .table__head .col-status, .rec-row .status-cell { display: none; }
   .actionbar__inner { padding: 12px 14px; }
 }
