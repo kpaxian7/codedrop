@@ -12,7 +12,7 @@
  */
 window.CODEDROP_I18N = {
   en: {
-    smtpBtn: "SMTP", star: "Star",
+    smtpBtn: "SMTP", star: "GitHub",
     introTitle: "Redemption code campaign",
     introBody: "Map each backer to a one-time code, then send the whole batch from your own SMTP in a single click. Email fields accept plain addresses or Base64 — anything encoded is decoded automatically.",
     tplSubject: "Your redemption code for MakePaper",
@@ -64,7 +64,7 @@ window.CODEDROP_I18N = {
   },
 
   zh: {
-    smtpBtn: "SMTP", star: "Star",
+    smtpBtn: "SMTP", star: "GitHub",
     introTitle: "兑换码分发",
     introBody: "为每位用户分配一个一次性兑换码，配置好自己的 SMTP 后即可一键群发。邮箱栏支持直接填写地址，也支持 Base64 —— 凡是编码过的内容都会被自动解码。",
     tplSubject: "你的 MakePaper 兑换码",
