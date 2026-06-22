@@ -25,34 +25,15 @@
 - **自带 SMTP**:Gmail / Outlook / Fastmail / iCloud / QQ / 163 预设,附各家「应用专用密码」指引。
 - **中英双语 + 本地持久化**:一键切换语言;模板、收件人、SMTP 设置存在浏览器本地,刷新不丢。
 
-## 部署
-
-它是个静态站点,分两种用法:
-
-**① 仅演示(不会真正发信)** —— 当静态站点托管即可:
+## 如何使用？
 
 ```bash
-git clone https://github.com/kpaxian7/codedrop.git
-cd codedrop && python3 -m http.server 5173   # 或丢到任意静态托管
+cd examples/server && npm install && npm start
+
+...
+
+CodeDrop is running — open http://localhost:8787
 ```
-
-打开 `http://localhost:5173` 试用。
-
-**② 真实发送** —— 浏览器不能直连 SMTP,所以跑一下自带后端(它会同时托管页面,**一条命令、无需改配置**):
-
-```bash
-cd examples/server && npm install && npm start   # 打开它打印的地址
-```
-
-前端探测到后端后会**自动切换到真实发送**;没有后端的静态托管则安全地停在演示模式。想前后端分开部署,就在 `assets/js/config.js` 里显式填 `api.endpoint` 覆盖自动探测。
-
-## 配置
-
-改 `assets/js/config.js`(品牌、配色、SMTP 预设、`api.endpoint`);所有文案与默认邮件模板在 `assets/js/i18n.js`。改完刷新即可,无需构建。
-
-## 安全
-
-用**应用专用密码**(不是登录密码);SMTP 密码默认不持久化,每次重新输入;生产环境后端务必走 HTTPS 并设 `CORS_ORIGIN`。细节见[后端 README](examples/server/README.md)。
 
 ## License
 
